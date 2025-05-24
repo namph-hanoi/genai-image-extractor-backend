@@ -4,6 +4,9 @@ import { AppService } from './app.service';
 import { ReceiptExtractorModule } from './receipt-extractor/receipt-extractor.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UploadedImage } from './entities/uploaded-image.entity';
+import { ExtractedReceipt } from './entities/extracted-receipt.entity';
+import { ExtractedItem } from './entities/extracted-item.entity';
 
 @Module({
   imports: [
@@ -19,9 +22,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: true, // Set to false in production
+      synchronize: false, // Set to false in production
     }),
     ReceiptExtractorModule,
+    TypeOrmModule.forFeature([UploadedImage, ExtractedReceipt, ExtractedItem]),
   ],
   controllers: [AppController],
   providers: [AppService],
