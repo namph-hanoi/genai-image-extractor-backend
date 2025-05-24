@@ -12,7 +12,7 @@ import { ExtractedItem } from './entities/extracted-item.entity';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+      envFilePath: `.env`,
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

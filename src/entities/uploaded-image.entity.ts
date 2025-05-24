@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ExtractedReceipt } from './extracted-receipt.entity';
 
-@Entity()
+@Entity('uploaded_images')
 export class UploadedImage {
   @PrimaryGeneratedColumn()
   id: number;

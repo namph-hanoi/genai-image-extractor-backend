@@ -11,7 +11,7 @@ import {
 import { UploadedImage } from './uploaded-image.entity';
 import { ExtractedItem } from './extracted-item.entity';
 
-@Entity()
+@Entity('extracted_receipts')
 export class ExtractedReceipt {
   @PrimaryGeneratedColumn()
   id: number;

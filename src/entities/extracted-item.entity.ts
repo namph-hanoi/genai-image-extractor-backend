@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ExtractedReceipt } from './extracted-receipt.entity';
 
-@Entity()
+@Entity('extracted_items')
 export class ExtractedItem {
   @PrimaryGeneratedColumn()
   id: number;
