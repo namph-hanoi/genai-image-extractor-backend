@@ -7,7 +7,6 @@ import {
 import { ReceiptExtractorService } from './receipt-extractor.service';
 import { FileInterceptor } from '../interceptors/file.interceptor';
 import { ImageValidationPipe } from '../pipes/image-validation.pipe';
-import { readFileSync } from 'fs';
 
 @Controller('extract-receipt-details')
 export class ReceiptExtractorController {
@@ -19,10 +18,9 @@ export class ReceiptExtractorController {
   @UseInterceptors(FileInterceptor)
   async extractReceiptDetail(
     @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
-  ): Promise<string> {
+  ): Promise<any> {
     // TODO: apply the S3 logic here
-    const imageBuffer = readFileSync(file.path);
-    return this.receiptExtractorService.extractDetails(imageBuffer);
+    return this.receiptExtractorService.extractDetails(file);
     // return this.receiptExtractorService.testUpload(imageBuffer);
   }
 }
