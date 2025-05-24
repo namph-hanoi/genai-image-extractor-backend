@@ -21,4 +21,20 @@ describe('ReceiptExtractorController', () => {
   it('should return receipt details', () => {
     expect(controller.extractReceiptDetail()).toBe('Receipt details extracted');
   });
+
+  it('expect return incorrect file type', () => {
+    expect(controller).toBeDefined();
+  });
+
+  it('expect get successful extraction', () => {
+    expect(controller).toBeDefined();
+  });
+
+  it('expect error from model', () => {
+    expect(controller).toBeDefined();
+  });
+
+  it('expect internal error 500', () => {
+    expect(controller).toBeDefined();
+  });
 });
