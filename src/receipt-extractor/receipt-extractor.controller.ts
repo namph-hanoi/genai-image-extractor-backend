@@ -22,7 +22,7 @@ export class ReceiptExtractorController {
   ): Promise<string> {
     // TODO: apply the S3 logic here
     const imageBuffer = readFileSync(file.path);
-    // return this.receiptExtractorService.extractDetails(imageBuffer);
-    return this.receiptExtractorService.testUpload(imageBuffer);
+    return this.receiptExtractorService.extractDetails(imageBuffer);
+    // return this.receiptExtractorService.testUpload(imageBuffer);
   }
 }

@@ -21,6 +21,7 @@ export class ReceiptExtractorService implements OnModuleInit {
 
     const prompt = `Extract the texts in the the uploaded image, convert and return the extracted into a json structure which is comprised of the following properties and formats:
 - date (string of YYYY/MM/DD)
+- vendor (string of YYYY/MM/DD)
 - currency (string 3-character currency code)
 - receipt_items (array of items, each item has properties of item_name and item_cost in string and number respectively):
 - tax (number)
