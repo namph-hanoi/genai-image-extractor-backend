@@ -1,8 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class ReceiptExtractorService implements OnModuleInit {
@@ -18,9 +16,7 @@ export class ReceiptExtractorService implements OnModuleInit {
     this.googleAI = new GoogleGenAI({ apiKey });
   }
 
-  async extractDetails(): Promise<any> {
-    const imagePath = path.join(__dirname, '../../sample-receipts/1.jpg');
-    const imageBuffer = fs.readFileSync(imagePath);
+  async extractDetails(imageBuffer: Buffer): Promise<any> {
     const imageBase64 = imageBuffer.toString('base64');
 
     const prompt = `Extract the texts in the the uploaded image, convert and return the extracted into a json structure which is comprised of the following properties and formats:
@@ -49,5 +45,12 @@ export class ReceiptExtractorService implements OnModuleInit {
       console.error('Error during receipt extraction:', error);
       throw new Error('Failed to extract receipt details.');
     }
+  }
+
+  // TODO: remove after done working with uploading functions
+  async testUpload(imageBuffer: Buffer): Promise<any> {
+    const imageBase64 = imageBuffer.toString('base64');
+    console.log(["🚀 ~ ReceiptExtractorService ~ testUpload ~ imageBase64:", imageBase64]);
+    return imageBase64;
   }
 }

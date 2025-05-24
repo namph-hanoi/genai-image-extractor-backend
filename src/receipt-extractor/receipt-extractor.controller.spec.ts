@@ -11,7 +11,9 @@ describe('ReceiptExtractorController', () => {
       providers: [ReceiptExtractorService],
     }).compile();
 
-    controller = module.get<ReceiptExtractorController>(ReceiptExtractorController);
+    controller = module.get<ReceiptExtractorController>(
+      ReceiptExtractorController,
+    );
   });
 
   it('should be defined', () => {
