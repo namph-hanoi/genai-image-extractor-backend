@@ -8,7 +8,7 @@ export class ReceiptExtractorController {
   ) {}
 
   @Post()
-  extractReceiptDetail(): string {
+  extractReceiptDetail(): Promise<string> {
     return this.receiptExtractorService.extractDetails();
   }
 }
