@@ -44,7 +44,6 @@ export class FileInterceptor implements NestInterceptor {
       }
     } catch (error) {
       this.logger.error('Error in FileInterceptor', error.stack);
-      // TODO: apply global error handling to repsond with a proper error message
       throw error;
     }
 
