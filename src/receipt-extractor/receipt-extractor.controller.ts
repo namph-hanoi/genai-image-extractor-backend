@@ -6,7 +6,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { ReceiptExtractorService } from './receipt-extractor.service';
-import { FileInterceptor } from '../interceptors/file.interceptor';
+import { FileInterceptor } from '../common/interceptors/file.interceptor';
 import { ImageValidationPipe } from '../pipes/image-validation.pipe';
 
 @Controller('extract-receipt-details')
