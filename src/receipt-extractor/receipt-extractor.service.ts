@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -27,7 +26,9 @@ export class ReceiptExtractorService implements OnModuleInit {
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey) {
-        throw new Error('GEMINI_API_KEY is not defined in the environment variables');
+        throw new Error(
+          'GEMINI_API_KEY is not defined in the environment variables',
+        );
       }
 
       this.googleAI = new GoogleGenAI({ apiKey });
@@ -39,26 +40,36 @@ export class ReceiptExtractorService implements OnModuleInit {
   }
 
   async extractDetails(file: Express.Multer.File): Promise<any> {
-    this.logger.log(`Starting receipt extraction for file: ${file.originalname}`);
-    
+    this.logger.log(
+      `Starting receipt extraction for file: ${file.originalname}`,
+    );
+
     try {
       const uploadedImage = await this.saveUploadedImage(file);
-      
+
       const extractedData = await this.extractDataFromImage(file);
-      
-      const extractedReceipt = await this.saveExtractedReceipt(extractedData, uploadedImage);
-      
-      const extractedItems = await this.saveExtractedItems(extractedData.receipt_items, extractedReceipt);
-      
-      this.logger.log(`Successfully processed receipt for file: ${file.originalname}`);
-      
+
+      const extractedReceipt = await this.saveExtractedReceipt(
+        extractedData,
+        uploadedImage,
+      );
+
+      const extractedItems = await this.saveExtractedItems(
+        extractedData.receipt_items,
+        extractedReceipt,
+      );
+
+      this.logger.log(
+        `Successfully processed receipt for file: ${file.originalname}`,
+      );
+
       // Return a serializable structure without circular references
       return {
         uploadedImage: {
           id: uploadedImage.id,
           name: uploadedImage.name,
           path: uploadedImage.path,
-          created_at: uploadedImage.created_at
+          created_at: uploadedImage.created_at,
         },
         extractedReceipt: {
           id: extractedReceipt.id,
@@ -67,23 +78,28 @@ export class ReceiptExtractorService implements OnModuleInit {
           extracted_vendor_name: extractedReceipt.extracted_vendor_name,
           extracted_tax: extractedReceipt.extracted_tax,
           extracted_total: extractedReceipt.extracted_total,
-          created_at: extractedReceipt.created_at
+          created_at: extractedReceipt.created_at,
         },
-        extractedItems: extractedItems.map(item => ({
+        extractedItems: extractedItems.map((item) => ({
           id: item.id,
           item_name: item.item_name,
           item_cost: item.item_cost,
-          created_at: item.created_at
+          created_at: item.created_at,
         })),
-        rawData: extractedData
+        rawData: extractedData,
       };
     } catch (error) {
-      this.logger.error(`Failed to extract receipt details for file: ${file.originalname}`, error);
+      this.logger.error(
+        `Failed to extract receipt details for file: ${file.originalname}`,
+        error,
+      );
       throw new Error('Failed to extract receipt details.');
     }
   }
 
-  private async saveUploadedImage(file: Express.Multer.File): Promise<UploadedImage> {
+  private async saveUploadedImage(
+    file: Express.Multer.File,
+  ): Promise<UploadedImage> {
     try {
       const uploadedImage = new UploadedImage();
       uploadedImage.name = file.originalname;
@@ -126,7 +142,7 @@ export class ReceiptExtractorService implements OnModuleInit {
 
       const cleanedText = response.text.replace(/^```json\n|```$/g, '');
       const extractedData = JSON.parse(cleanedText);
-      
+
       this.logger.log('Successfully extracted data from image using AI');
       return extractedData;
     } catch (error) {
@@ -135,7 +151,10 @@ export class ReceiptExtractorService implements OnModuleInit {
     }
   }
 
-  private async saveExtractedReceipt(extractedData: any, uploadedImage: UploadedImage): Promise<ExtractedReceipt> {
+  private async saveExtractedReceipt(
+    extractedData: any,
+    uploadedImage: UploadedImage,
+  ): Promise<ExtractedReceipt> {
     try {
       const extractedReceipt = new ExtractedReceipt();
       extractedReceipt.extracted_date = new Date(extractedData.date);
@@ -146,7 +165,8 @@ export class ReceiptExtractorService implements OnModuleInit {
       extractedReceipt.extracted_total = extractedData.total;
       extractedReceipt.uploadedImage = uploadedImage;
 
-      const savedReceipt = await this.extractedReceiptRepository.save(extractedReceipt);
+      const savedReceipt =
+        await this.extractedReceiptRepository.save(extractedReceipt);
       this.logger.log(`Saved extracted receipt with ID: ${savedReceipt.id}`);
       return savedReceipt;
     } catch (error) {
@@ -155,7 +175,10 @@ export class ReceiptExtractorService implements OnModuleInit {
     }
   }
 
-  private async saveExtractedItems(receiptItems: any[], extractedReceipt: ExtractedReceipt): Promise<ExtractedItem[]> {
+  private async saveExtractedItems(
+    receiptItems: any[],
+    extractedReceipt: ExtractedReceipt,
+  ): Promise<ExtractedItem[]> {
     try {
       const extractedItems = receiptItems.map((item: any) => {
         const extractedItem = new ExtractedItem();
@@ -165,7 +188,8 @@ export class ReceiptExtractorService implements OnModuleInit {
         return extractedItem;
       });
 
-      const savedItems = await this.extractedItemRepository.save(extractedItems);
+      const savedItems =
+        await this.extractedItemRepository.save(extractedItems);
       this.logger.log(`Saved ${savedItems.length} extracted items`);
       return savedItems;
     } catch (error) {
@@ -177,7 +201,10 @@ export class ReceiptExtractorService implements OnModuleInit {
   // TODO: remove after done working with uploading functions
   async testUpload(imageBuffer: Buffer): Promise<any> {
     const imageBase64 = imageBuffer.toString('base64');
-    console.log(["🚀 ~ ReceiptExtractorService ~ testUpload ~ imageBase64:", imageBase64]);
+    console.log([
+      '🚀 ~ ReceiptExtractorService ~ testUpload ~ imageBase64:',
+      imageBase64,
+    ]);
     return imageBase64;
   }
 }
