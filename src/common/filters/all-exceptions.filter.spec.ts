@@ -14,6 +14,8 @@ describe('AllExceptionsFilter', () => {
   let mockArgumentsHost: ArgumentsHost;
   let mockResponse: any;
   let mockRequest: any;
+  let loggerWarnSpy: jest.SpyInstance;
+  let loggerErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,6 +23,10 @@ describe('AllExceptionsFilter', () => {
     }).compile();
 
     filter = module.get<AllExceptionsFilter>(AllExceptionsFilter);
+
+    // Mock logger methods
+    loggerWarnSpy = jest.spyOn(filter['logger'], 'warn').mockImplementation();
+    loggerErrorSpy = jest.spyOn(filter['logger'], 'error').mockImplementation();
 
     // Mock response object
     mockResponse = {
@@ -31,6 +37,7 @@ describe('AllExceptionsFilter', () => {
     // Mock request object
     mockRequest = {
       url: '/test-endpoint',
+      method: 'POST',
     };
 
     // Mock ArgumentsHost
@@ -49,6 +56,8 @@ describe('AllExceptionsFilter', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    loggerWarnSpy.mockRestore();
+    loggerErrorSpy.mockRestore();
   });
 
   describe('HttpException handling', () => {
@@ -63,6 +72,20 @@ describe('AllExceptionsFilter', () => {
         message: 'Invalid input data',
         error: 'Bad Request',
       });
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        'HTTP Exception: 400 - Invalid input data',
+        {
+          path: '/test-endpoint',
+          method: 'POST',
+          status: 400,
+          response: {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Invalid input data',
+            error: 'Bad Request',
+          },
+        },
+      );
     });
 
     it('should handle NotFoundException correctly', () => {
@@ -76,6 +99,20 @@ describe('AllExceptionsFilter', () => {
         message: 'Resource not found',
         error: 'Not Found',
       });
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        'HTTP Exception: 404 - Resource not found',
+        {
+          path: '/test-endpoint',
+          method: 'POST',
+          status: 404,
+          response: {
+            statusCode: HttpStatus.NOT_FOUND,
+            message: 'Resource not found',
+            error: 'Not Found',
+          },
+        },
+      );
     });
 
     it('should handle InternalServerErrorException correctly', () => {
@@ -144,6 +181,16 @@ describe('AllExceptionsFilter', () => {
         path: '/test-endpoint',
       });
 
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Unhandled Exception: Something went wrong',
+        {
+          path: '/test-endpoint',
+          method: 'POST',
+          stack: exception.stack,
+          exception: exception,
+        },
+      );
+
       dateSpy.mockRestore();
     });
 
@@ -167,6 +214,16 @@ describe('AllExceptionsFilter', () => {
         timestamp: mockDate,
         path: '/test-endpoint',
       });
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Unhandled Exception: Unknown error',
+        {
+          path: '/test-endpoint',
+          method: 'POST',
+          stack: undefined,
+          exception: exception,
+        },
+      );
 
       dateSpy.mockRestore();
     });
