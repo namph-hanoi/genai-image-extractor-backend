@@ -3,7 +3,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GoogleGenAI } from '@google/genai';
-import { readFileSync } from 'fs';
+import { readFileSync, createReadStream } from 'fs';
 import { UploadedImage } from '../entities/uploaded-image.entity';
 import { ExtractedReceipt } from '../entities/extracted-receipt.entity';
 import { ExtractedItem } from '../entities/extracted-item.entity';
@@ -64,30 +64,19 @@ export class ReceiptExtractorService implements OnModuleInit {
         `Successfully processed receipt for file: ${file.originalname}`,
       );
 
-      // Return a serializable structure without circular references
       return {
-        uploadedImage: {
-          id: uploadedImage.id,
-          name: uploadedImage.name,
-          path: uploadedImage.path,
-          created_at: uploadedImage.created_at,
-        },
-        extractedReceipt: {
-          id: extractedReceipt.id,
-          extracted_date: extractedReceipt.extracted_date,
-          extracted_currency: extractedReceipt.extracted_currency,
-          extracted_vendor_name: extractedReceipt.extracted_vendor_name,
-          extracted_tax: extractedReceipt.extracted_tax,
-          extracted_total: extractedReceipt.extracted_total,
-          created_at: extractedReceipt.created_at,
-        },
-        extractedItems: extractedItems.map((item) => ({
+        id: extractedReceipt.id,
+        date: extractedReceipt.extracted_date,
+        currency: extractedReceipt.extracted_currency,
+        vendor: extractedReceipt.extracted_vendor_name,
+        tax: extractedReceipt.extracted_tax,
+        total: extractedReceipt.extracted_total,
+        receipt_items: extractedItems.map((item) => ({
           id: item.id,
           item_name: item.item_name,
           item_cost: item.item_cost,
-          created_at: item.created_at,
         })),
-        rawData: extractedData,
+        image_url: `${process.env.DOMAIN}/extract-receipt-details/images/${uploadedImage.id}`,
       };
     } catch (error) {
       this.logger.error(
@@ -204,5 +193,22 @@ export class ReceiptExtractorService implements OnModuleInit {
     const imageBase64 = imageBuffer.toString('base64');
     console.log(["🚀 ~ ReceiptExtractorService ~ testUpload ~ imageBase64:", imageBase64]);
     return imageBase64;
+  }
+
+  async getUploadedImage(imageId: string): Promise<any> {
+    try {
+      const uploadedImage = await this.uploadedImageRepository.findOne({
+        where: { id: parseInt(imageId) },
+      });
+
+      if (!uploadedImage) {
+        throw new Error('Image not found');
+      }
+
+      return createReadStream(uploadedImage.path);
+    } catch (error) {
+      this.logger.error(`Failed to get uploaded image: ${imageId}`, error);
+      throw new Error('Image not found');
+    }
   }
 }
