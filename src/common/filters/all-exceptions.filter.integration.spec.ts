@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
   HttpStatus,
-  BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import * as request from 'supertest';
