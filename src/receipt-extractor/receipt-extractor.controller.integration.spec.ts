@@ -70,7 +70,6 @@ describe('ReceiptExtractorController Integration Tests', () => {
       .attach('image', Buffer.from('fake image data'), 'test.jpg')
       .expect(HttpStatus.CREATED);
     expect(response.body).toEqual(mockResponse);
-    debugger;
   });
 
   it('should return error for incorrect file type', async () => {

@@ -34,11 +34,12 @@ describe('AllExceptionsFilter Integration Tests', () => {
         ReceiptExtractorModule,
       ],
     })
-    .overrideProvider(ImageValidationPipe)
-    .useValue({
-      transform: (value: any) => value || { originalname: 'test.jpg', buffer: Buffer.from('test') }
-    })
-    .compile();
+      .overrideProvider(ImageValidationPipe)
+      .useValue({
+        transform: (value: any) =>
+          value || { originalname: 'test.jpg', buffer: Buffer.from('test') },
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalFilters(new AllExceptionsFilter());
