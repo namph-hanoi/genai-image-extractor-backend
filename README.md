@@ -22,18 +22,59 @@
 
    You can check that the server is running correctly by trying the base endpoint `GET http://localhost:3000`, which should return the text "Hello World!"
 
-## Project Work
+6. Run tests to ensure everything is working correctly:
+   ```bash
+   npm run test
+   ```
 
-1. Complete all of your work in the working branch that you created above
+## 🚀 Running the Project
 
-2. Push commits to your remote working branch as often as you need
+### Prerequisites
 
-## Project Submission
+Before running the project, ensure you have the following set up:
 
-When you are ready to submit your work:
+#### 1. Environment Configuration
+Copy the example environment file and configure it:
+```bash
+cp .env.example .env
+```
 
-1. Create a PR into `main` branch
+#### 2. Database Setup
+- **PostgreSQL Server**: Ensure you have a running PostgreSQL instance
+- **Database Credentials**: Update the database connection details in your `.env` file to match your PostgreSQL setup
 
-2. Merge the above PR
+#### 3. AI Integration
+- **Google AI Studio**: Register for a Google AI Studio account
+- **API Key**: Obtain a `GEMINI_API_KEY` from Google AI Studio and add it to your `.env` file
 
-**⚠️ IMPORTANT: The above action is a one-time submission event. Do not open a PR until you are ready to submit your project.**
+#### 4. CORS Configuration
+- **Frontend Origin**: Set the `ALLOW_HOSTS` environment variable in your `.env` file to include your frontend application's origin
+- **Example**: `ALLOW_HOSTS=["http://localhost:5173"]`
+
+#### 5. Build and Run Build
+Remove existing build artifacts (if any) and build the application for production:
+```bash
+rm -rf dist && npm run build
+```
+
+Run database migrations:
+```bash
+npm run migration:run
+```
+
+Run the built application:
+```bash
+npm run start:prod
+```
+
+### 🛠️ Environment Variables
+
+Key environment variables to configure in your `.env` file:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | Server port | `3006` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/dbname` |
+| `GEMINI_API_KEY` | Google AI Studio API key | `your-api-key-here` |
+| `ALLOW_HOSTS` | Allowed CORS origins (JSON array) | `["http://localhost:5173"]` |
+
