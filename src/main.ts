@@ -7,6 +7,7 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   try {
     const app = await NestFactory.create(AppModule);
+    app.setGlobalPrefix('api');
     app.useGlobalFilters(new AllExceptionsFilter());
     const listenPort = process.env.PORT ?? 3000;
     await app.listen(listenPort);
