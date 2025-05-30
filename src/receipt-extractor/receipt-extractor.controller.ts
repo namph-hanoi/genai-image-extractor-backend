@@ -1,8 +1,10 @@
 import {
   Controller,
   Post,
+  Patch,
   Get,
   Param,
+  Body,
   UseInterceptors,
   UploadedFile,
   Res,
@@ -13,8 +15,10 @@ import { Response } from 'express';
 import { ReceiptExtractorService } from './receipt-extractor.service';
 import { FileInterceptor } from '../common/interceptors/file.interceptor';
 import { ImageValidationPipe } from '../pipes/image-validation.pipe';
+import { ReceiptDataValidationPipe } from '../pipes/receipt-data-validation.pipe';
+import { ReceiptDataDto } from '../dto/receipt-data.dto';
 
-@Controller('extract-receipt-details')
+@Controller()
 export class ReceiptExtractorController {
   private readonly logger = new Logger(ReceiptExtractorController.name);
 
@@ -22,7 +26,7 @@ export class ReceiptExtractorController {
     private readonly receiptExtractorService: ReceiptExtractorService,
   ) {}
 
-  @Post()
+  @Post('extract-receipt-details')
   @UseInterceptors(FileInterceptor)
   async extractReceiptDetail(
     @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
@@ -53,5 +57,13 @@ export class ReceiptExtractorController {
       );
       throw new NotFoundException('Image not found');
     }
+  }
+
+  @Patch('update-extracted-receipt-details')
+  async updateReceiptData(
+    @Body(new ReceiptDataValidationPipe()) receiptData: ReceiptDataDto,
+  ): Promise<{ message: string; data: ReceiptDataDto }> {
+    this.logger.log(`Updating receipt data for ID: ${receiptData.id}`);
+    return this.receiptExtractorService.updateReceiptData(receiptData);
   }
 }

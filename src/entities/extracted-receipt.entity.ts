@@ -34,6 +34,9 @@ export class ExtractedReceipt {
   @Column('decimal')
   extracted_total: number;
 
+  @Column()
+  is_valid: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

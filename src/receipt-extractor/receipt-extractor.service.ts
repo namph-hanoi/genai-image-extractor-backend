@@ -1,4 +1,10 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GoogleGenAI } from '@google/genai';
@@ -6,6 +12,11 @@ import { readFileSync, createReadStream } from 'fs';
 import { UploadedImage } from '../entities/uploaded-image.entity';
 import { ExtractedReceipt } from '../entities/extracted-receipt.entity';
 import { ExtractedItem } from '../entities/extracted-item.entity';
+import { ReceiptDataDto } from '../dto/receipt-data.dto';
+import {
+  calculateReceiptTotals,
+  validateReceiptTotals,
+} from '../common/utils/receipt-validation.util';
 
 @Injectable()
 export class ReceiptExtractorService implements OnModuleInit {
@@ -70,6 +81,7 @@ export class ReceiptExtractorService implements OnModuleInit {
         vendor: extractedReceipt.extracted_vendor_name,
         tax: extractedReceipt.extracted_tax,
         total: extractedReceipt.extracted_total,
+        is_valid: extractedReceipt.is_valid,
         receipt_items: extractedItems.map((item) => ({
           id: item.id,
           item_name: item.item_name,
@@ -154,6 +166,24 @@ export class ReceiptExtractorService implements OnModuleInit {
       extractedReceipt.extracted_total = extractedData.total;
       extractedReceipt.uploadedImage = uploadedImage;
 
+      // Validate receipt by checking if sum of items + tax equals total
+      const receiptDataForValidation = {
+        receipt_items: extractedData.receipt_items.map((item: any) => ({
+          item_name: item.item_name,
+          item_cost: item.item_cost,
+        })),
+        tax: extractedData.tax,
+        total: extractedData.total,
+      } as ReceiptDataDto;
+
+      const totals = calculateReceiptTotals(receiptDataForValidation);
+      const isValid = validateReceiptTotals(totals);
+      extractedReceipt.is_valid = isValid;
+
+      this.logger.log(
+        `Receipt validation: Items total: ${totals.itemsTotal}, Tax: ${extractedData.tax}, Calculated total: ${totals.calculatedTotal}, Actual total: ${totals.providedTotal}, Valid: ${isValid}`,
+      );
+
       const savedReceipt =
         await this.extractedReceiptRepository.save(extractedReceipt);
       this.logger.log(`Saved extracted receipt with ID: ${savedReceipt.id}`);
@@ -184,6 +214,72 @@ export class ReceiptExtractorService implements OnModuleInit {
     } catch (error) {
       this.logger.error('Failed to save extracted items', error);
       throw new Error('Failed to save extracted items to database');
+    }
+  }
+
+  async updateReceiptData(
+    receiptData: ReceiptDataDto,
+  ): Promise<{ message: string; data: ReceiptDataDto }> {
+    this.logger.log(`Updating receipt data for ID: ${receiptData.id}`);
+
+    try {
+      // Check if the record with the id exists
+      const existingReceipt = await this.extractedReceiptRepository.findOne({
+        where: { id: receiptData.id },
+        relations: ['extractedItems'],
+      });
+
+      if (!existingReceipt) {
+        this.logger.error(`Receipt with ID ${receiptData.id} not found`);
+        throw new NotFoundException(
+          `Receipt with ID ${receiptData.id} not found`,
+        );
+      }
+
+      // Revalidate the params to see if the sum of items plus tax match with the total
+      const totals = calculateReceiptTotals(receiptData);
+
+      // Check if the total matches the sum of items + tax (allowing small floating point differences)
+      if (!validateReceiptTotals(totals)) {
+        const errorMessage = `Receipt validation failed: calculated total (${totals.calculatedTotal.toFixed(
+          2,
+        )}) doesn't match provided total (${totals.providedTotal.toFixed(2)})`;
+        this.logger.error(errorMessage);
+        throw new BadRequestException(errorMessage);
+      }
+
+      // Update the existing receipt with new data
+      existingReceipt.extracted_date = new Date(receiptData.date);
+      existingReceipt.extracted_currency = receiptData.currency;
+      existingReceipt.extracted_vendor_name = receiptData.vendor_name;
+      existingReceipt.extracted_tax = receiptData.tax;
+      existingReceipt.extracted_total = receiptData.total;
+      existingReceipt.extracted_items = receiptData.receipt_items;
+      existingReceipt.is_valid = true; // Mark as valid since validation passed
+
+      // Save the updated receipt
+      await this.extractedReceiptRepository.save(existingReceipt);
+
+      this.logger.log(
+        `Successfully updated receipt data for ID: ${receiptData.id}. Items total: ${totals.itemsTotal}, Tax: ${receiptData.tax}, Total: ${receiptData.total}`,
+      );
+
+      return {
+        message: 'Receipt data updated successfully',
+        data: null,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to update receipt data for ID: ${receiptData.id}`,
+        error,
+      );
+      throw new Error('Failed to update receipt data');
     }
   }
 
